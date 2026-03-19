@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>台水資訊處佐證照片比對程式</title>
+    <link rel="icon" href="logo-cm.png" type="image/x-icon">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%; /* 確保 HTML 佔滿全高 */
+        }
+
+        .hero-wrapper {
+            /* 這是關鍵：讓容器高度等於瀏覽器 100% 的高度 */
+            height: 100vh; 
+            
+            /* 使用 Flexbox 進行水平垂直置中 */
+            display: flex;
+            justify-content: center; /* 水平置中 */
+            align-items: center;     /* 垂直置中 */
+            flex-direction: column;  /* 讓 <h1> 和 <button> 垂直排列 */
+
+            /* 結合你之前的背景設定 */
+            background-image: url('./台水logo.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: white;
+        }
+
+        .custom-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            cursor: pointer;
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+
+        .custom-btn:hover {
+            transform: scale(1.05); /* 稍微變大 */
+        }
+    </style>
+    <script type="text/javascript" src="/eel.js"></script>
+</head>
+<body>
+    <!-- <h1 style="text-align: center;">歡迎使用佐證照片比對程式!</h1> -->
+    <!-- <button onclick="callPython()">點我呼叫 Python</button><br>
+    <button onclick="isDirExist()">檢查"待比對"資料夾是否存在</button><br>
+    <button onclick="callCreateTimeStampDir()">創建時間戳資料夾</button><br>
+    <button onclick="callFileExtentionClassify()">依據副檔名分類</button><br>
+    <button onclick="callDocToDocx()">doc轉換成docx</button><br>
+    <button onclick="callExtractImages()">抓取所有照片到extracted_images 目前為空洞，為以下數個子程式的集合</button><br>
+    <button onclick="callExtractImageFromPDFS()">從pdf資料夾開啟所有pdf並擷取所有照片到extracted_images</button><br>
+    <button onclick="callExtractImageFromDOCXS()">從docx資料夾開啟所有docx並擷取所有照片到extracted_images</button><br>
+    <button onclick="callExtractImageFromEXCELS()">從excel資料夾開啟所有excel並擷取所有照片到extracted_images 待測試</button><br>
+    <button onclick="callBuildDB()">創建資料庫 此步考慮略過，直接執行下面的phash分析</button><br> -->
+    <!-- <button onclick="callPHashCompare()">執行phash比對 todo</button><br> -->
+    <div class="hero-wrapper">
+    <!-- <button class="custom-btn">立即開始</button> -->
+        <button class="custom-btn" onclick="callOneButton()">一鍵執行比對</button><br>
+    </div>
+    <div>
+        本程式適用AGPL3.0授權規範，程式原始碼公開於https://github.com/Hungyun/photo_compare_new
+    </div>
+    <!-- <button onclick="callOneButton()">一鍵執行比對</button><br> -->
+<script type="text/javascript">
+        // 提供給 Python 呼叫的 JS 函式
+        eel.expose(say_hello_js);
+        function say_hello_js(msg) {
+            alert(msg);
+        }
+
+        function callPython() {
+            // 呼叫 Python 的函式
+            eel.hello_python("來自瀏覽器的問候！");
+        }
+
+        function isDirExist() {
+            // let dirPath = prompt("請輸入要檢查的資料夾路徑：");
+            eel.isDirExist();
+        }
+        function callCreateTimeStampDir() {
+            // let dirPath = prompt("請輸入要檢查的資料夾路徑：");
+            eel.create_timestamp_dir();
+        }
+        // 在這一個步驟已經將.jpg檔移到extracted_images資料夾了
+        function callFileExtentionClassify(){
+            eel.file_extention_classify();
+        }
+        // 可以執行，但是需要時間跑
+        function callDocToDocx(){
+            eel.doc_to_docx();
+        }
+        function callExtractImages(){
+            eel.extract_images();
+        }
+        // seems ok
+        function callExtractImageFromPDFS(){
+            eel.extract_image_from_pdfs();
+        }
+        // 尚待測試
+        function callExtractImageFromDOCXS(){
+            eel.extract_image_from_docxs();
+        }
+        function callExtractImageFromEXCELS(){
+            eel.extract_image_from_excels();
+        }
+        function callBuildDB(){
+            eel.buildDB();
+        }
+        function callPHashCompare(){
+            eel.PHashCompare();
+        }
+        async function callOneButton(){
+            // step1: 檢查待比對檔案資料夾存在狀態
+            let dirExist = await eel.isDirExist()();
+            console.log("資料夾狀態: ", dirExist);
+            if (!dirExist){
+                alert("錯誤: 資料夾不存在，程序已停止。")
+                return;
+            }
+            alert("執行中");
+            // step2: 建立時間戳資料夾
+            let timestamp_dir = await eel.create_timestamp_dir()();
+            if (!timestamp_dir){
+                alert("錯誤: 無法創建時間戳資料夾，程序已停止。")
+                return;
+            }
+
+
+            // step3: 依據副檔名分類
+            let classified = await eel.file_extention_classify()();
+            if (!classified){
+                alert("錯誤: step3 分類過程有誤，程序已停止。")
+                return;
+            }
+            
+            // step4: doc轉換成docx
+            let docxok = await eel.doc_to_docx()();
+            if (!docxok){
+                alert("錯誤: step4 docx轉換過程有誤，程序已停止。")
+                return;
+            }
+
+            // step5: 從pdf資料夾開啟所有pdf並擷取所有照片到extracted_image
+            let p_from_pdf_done = await eel.extract_image_from_pdfs()();
+            if (!p_from_pdf_done){
+                alert("錯誤: step5 從pdf提取照片有誤，程序已停止。")
+                return;
+            }
+            // step6: 從docx資料夾開啟所有docx並擷取所有照片到extracted_image
+            let p_from_docx_done = await eel.extract_image_from_docxs()();
+            if (!p_from_docx_done){
+                alert("錯誤: step6 從docx提取照片有誤，程序已停止。")
+                return;
+            }
+            // step7: 從excel資料夾開啟所有excel並擷取所有照片到extracted_image
+            let p_from_excel_done = await eel.extract_image_from_excels()();
+            if (!p_from_excel_done){
+                alert("錯誤: step7 從excel提取照片有誤，程序已停止。")
+                return;
+            }
+            // step8: 執行phash比對
+            let phash_done = await eel.PHashCompare()();
+            if (!phash_done){
+                alert("錯誤: step8 比對過程有誤，程序已停止。")
+                return;
+            }
+            alert("比對完成，請至程式旁的比對結果.txt查看！");
+
+
+        }
+        // function callOneButton(){
+        //     checkDirExist();
+        // }
+    </script>
+</body>
+</html>
